@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+source $SCRIPTS/common.sh
+
+# @cmd Ensures configuration has been initialized
+setup() {
+	mkdir -p $LOCAL
+}
+
+# @cmd Ensures code is formatted and that tests pass
+# @flag --format        Run formatters
+# @flag --lint          Run ruff linter
+# @flag --typecheck     Run typechecks
+# @flag --test          Run tests
+check() {
+	flag_count=0
+	[[ $argc_format -eq 1 ]] && flag_count+=1
+	[[ $argc_lint -eq 1 ]] && flag_count+=1
+	[[ $argc_typecheck -eq 1 ]] && flag_count+=1
+	[[ $argc_test -eq 1 ]] && flag_count+=1
+	if [[ $flag_count -eq 0 ]] || [[ $argc_format -eq 1 ]]; then
+		runp "ruff format ."
+	fi
+	if [[ $flag_count -eq 0 ]] || [[ $argc_lint -eq 1 ]]; then
+		runp "ruff format --check ."
+	fi
+	if [[ $flag_count -eq 0 ]] || [[ $argc_typecheck -eq 1 ]]; then
+		runp "pyright"
+	fi
+	if [[ $flag_count -eq 0 ]] || [[ $argc_test -eq 1 ]]; then
+		runp "pytest -vv --no-header src"
+	fi
+}
+
+# @cmd Manage nix flake dev shell & python deps
+dream2nix() { :; }
+
+# @cmd Create lock files
+# @flag --prod          Create production lock file
+# @flag --dev           Create development lock file
+dream2nix::lock() {
+	flag_count=0
+	[[ $argc_prod -eq 1 ]] && flag_count+=1
+	[[ $argc_dev -eq 1 ]] && flag_count+=1
+	if [[ $flag_count -eq 0 ]] || [[ $argc_prod -eq 1 ]]; then
+		runp "pdm lock \
+      --lockfile pdm.prod.lock \
+      --prod \
+      --update-reuse"
+	fi
+	if [[ $flag_count -eq 0 ]] || [[ $argc_dev -eq 1 ]]; then
+		runp "pdm lock \
+      --lockfile pdm.dev.lock \
+      --dev \
+      --update-reuse"
+	fi
+}
+
+# @cmd Build derivations from lock files
+# @flag --prod         Create production derivation
+# @flag --dev          Create development derivation
+dream2nix::build() {
+	flag_count=0
+	[[ $argc_prod -eq 1 ]] && flag_count+=1
+	[[ $argc_dev -eq 1 ]] && flag_count+=1
+	if [[ $flag_count -eq 0 ]] || [[ $argc_prod -eq 1 ]]; then
+	  runp "nix build .#prod"
+	fi
+	if [[ $flag_count -eq 0 ]] || [[ $argc_dev -eq 1 ]]; then
+	  runp "nix build .#dev"
+	fi
+}
+
+# @cmd Delete dream2nix artifacts
+dream2nix::clean() {
+	runp "rm -rf result"
+	runp "rm -rf .dream2nix"
+	runp "rm -rf .direnv"
+}
+
+# @cmd Python package management
+pypi() { :; }
+
+# @cmd Build distribution package
+pypi::build() {
+	runp "python -m build"
+}
+
+# @cmd Publish distribution package
+pypi::publish() {
+  runp "python -m twine upload dist/*"
+}
+#
+# @cmd Delete distribution package
+pypi::clean() {
+  runp "rm -rf dist"
+}
+
+# Parse args and apply them to the specified function
+dev --ensure-devshell "$@"
