@@ -1,0 +1,11 @@
+apiVersion: v2
+name: kafka-proxy
+home: https://github.com/rupurt/kop
+description: Skaffold managed Kafka Proxy
+maintainers:
+- name: Alex Kwiatkowski
+  email: rupurt@gmail.com
+  url: https://github.com/rupurt
+version: 0.0.0
+type: application
+appVersion: "v0.0.0"

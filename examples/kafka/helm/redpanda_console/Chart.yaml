@@ -1,0 +1,11 @@
+apiVersion: v2
+name: redpanda-console
+home: https://github.com/rupurt/kop
+description: Skaffold managed Redpanda Console
+maintainers:
+- name: Alex Kwiatkowski
+  email: rupurt@gmail.com
+  url: https://github.com/rupurt
+version: 0.0.0
+type: application
+appVersion: "v0.0.0"

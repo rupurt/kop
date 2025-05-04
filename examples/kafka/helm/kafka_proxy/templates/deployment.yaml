@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-proxy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: kafka-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-proxy
+  template:
+    metadata:
+      labels:
+        app: kafka-proxy
+    spec:
+      containers:
+      - name: kafka-proxy
+        image: grepplabs/kafka-proxy:0.4.2-all
+        ports:
+        - containerPort: 29094
+        - containerPort: 29095
+        - containerPort: 29096
+        - containerPort: 29097
+        args:
+        - "server"
+        - "--bootstrap-server-mapping=example-kafka-cluster-kafka-external-bootstrap:9094,0.0.0.0:29094"
+        - "--dynamic-sequential-min-port=29095"
+        - "--deterministic-listeners"
+        - "--debug-enable"

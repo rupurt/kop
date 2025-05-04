@@ -1,0 +1,18 @@
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: examples-reactive
+build:
+  artifacts:
+  - image: examples-reactive
+    context: .
+    docker:
+      dockerfile: examples/reactive/Dockerfile
+  local:
+    useBuildkit: true
+deploy:
+  helm:
+    releases:
+    - name: examples-reactive
+      chartPath: examples/reactive/helm
+      namespace: examples-reactive

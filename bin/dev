@@ -34,68 +34,91 @@ check() {
 	fi
 }
 
-# @cmd Manage nix flake dev shell & python deps
-dream2nix() { :; }
+# @cmd Manage local k3d cluster
+k3d() { :; }
 
-# @cmd Create lock files
-# @flag --prod          Create production lock file
-# @flag --dev           Create development lock file
-dream2nix::lock() {
-	flag_count=0
-	[[ $argc_prod -eq 1 ]] && flag_count+=1
-	[[ $argc_dev -eq 1 ]] && flag_count+=1
-	if [[ $flag_count -eq 0 ]] || [[ $argc_prod -eq 1 ]]; then
-		runp "pdm lock \
-      --lockfile pdm.prod.lock \
-      --prod \
-      --update-reuse"
-	fi
-	if [[ $flag_count -eq 0 ]] || [[ $argc_dev -eq 1 ]]; then
-		runp "pdm lock \
-      --lockfile pdm.dev.lock \
-      --dev \
-      --update-reuse"
-	fi
+# @cmd Create k3d cluster
+k3d::create() {
+	runp """
+  k3d cluster create kop \
+    --image rancher/k3s:v1.31.4-k3s1 \
+    --k3s-arg '--disable=traefik@server:*' \
+    --port '80:80@loadbalancer'
+  """
 }
 
-# @cmd Build derivations from lock files
-# @flag --prod         Create production derivation
-# @flag --dev          Create development derivation
-dream2nix::build() {
-	flag_count=0
-	[[ $argc_prod -eq 1 ]] && flag_count+=1
-	[[ $argc_dev -eq 1 ]] && flag_count+=1
-	if [[ $flag_count -eq 0 ]] || [[ $argc_prod -eq 1 ]]; then
-	  runp "nix build .#prod"
-	fi
-	if [[ $flag_count -eq 0 ]] || [[ $argc_dev -eq 1 ]]; then
-	  runp "nix build .#dev"
-	fi
+# @cmd Delete k3d cluster
+k3d::delete() {
+	runp "k3d cluster delete kop"
 }
 
-# @cmd Delete dream2nix artifacts
-dream2nix::clean() {
-	runp "rm -rf result"
-	runp "rm -rf .dream2nix"
-	runp "rm -rf .direnv"
+# @cmd Start k3d cluster
+k3d::start() {
+	runp "k3d cluster start kop"
 }
 
-# @cmd Python package management
-pypi() { :; }
-
-# @cmd Build distribution package
-pypi::build() {
-	runp "python -m build"
+# @cmd Stop k3d cluster
+k3d::stop() {
+	runp "k3d cluster stop kop"
 }
 
-# @cmd Publish distribution package
-pypi::publish() {
-  runp "python -m twine upload dist/*"
+# @cmd Continuous development for kubernetes
+skaffold() { :; }
+
+# @cmd Continuous development for kafka pipeline
+skaffold::kafka() { :; }
+
+# @cmd Run kafka pipeline once
+skaffold::kafka::run() {
+	runp """
+  skaffold run \
+    --port-forward=user \
+    -f skaffold.kafka.yaml
+  """
 }
-#
-# @cmd Delete distribution package
-pypi::clean() {
-  runp "rm -rf dist"
+
+# @cmd Generate manifests for kafka pipeline
+skaffold::kafka::render() {
+	runp """
+  skaffold render \
+    -f skaffold.kafka.yaml
+  """
+}
+
+# @cmd Delete resources deployed by kafka pipeline
+skaffold::kafka::delete() {
+	runp """
+  skaffold delete \
+    -f skaffold.kafka.yaml
+  """
+}
+
+# @cmd Continuous development for reactive pipeline
+skaffold::reactive() { :; }
+
+# @cmd Run reactive pipeline once
+skaffold::reactive::run() {
+	runp """
+  skaffold run \
+    --port-forward=user \
+    -f skaffold.reactive.yaml
+  """
+}
+
+# @cmd Generate manifests for reactive pipeline
+skaffold::reactive::render() {
+	runp """
+  skaffold render \
+    -f skaffold.reactive.yaml
+  """
+}
+
+# @cmd Delete resources deployed by reactive pipeline
+skaffold::reactive::delete() {
+	runp """
+  skaffold delete \
+    -f skaffold.reactive.yaml
+  """
 }
 
 # Parse args and apply them to the specified function

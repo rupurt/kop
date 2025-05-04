@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: examples-reactive-consumer
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: examples-reactive-consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: examples-reactive-consumer
+  template:
+    metadata:
+      labels:
+        app: examples-reactive-consumer
+    spec:
+      containers:
+      - name: examples-reactive-consumer
+        image: examples-reactive
+        env:
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: example-kafka-cluster-kafka-bootstrap:9092

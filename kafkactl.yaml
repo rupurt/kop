@@ -1,0 +1,6 @@
+contexts:
+  default:
+    brokers:
+    - localhost:29094
+
+current-context: default

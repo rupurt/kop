@@ -1,0 +1,57 @@
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: kafka
+deploy:
+  helm:
+    hooks:
+      before:
+      - host:
+          command:
+          - 'bash'
+          - '-c'
+          - 'helm repo add strimzi https://strimzi.io/charts'
+    releases:
+    - name: kafka
+      chartPath: examples/kafka/helm/kafka
+      namespace: examples-reactive
+      createNamespace: true
+    - name: kafka-proxy
+      chartPath: examples/kafka/helm/kafka_proxy
+      namespace: examples-reactive
+      createNamespace: true
+    - name: redpanda-console
+      chartPath: examples/kafka/helm/redpanda_console
+      namespace: examples-reactive
+      createNamespace: true
+portForward:
+- resourceType: service
+  resourceName: kafka-proxy
+  namespace: examples-reactive
+  address: 0.0.0.0
+  port: 29094
+  localPort: 29094
+- resourceType: service
+  resourceName: kafka-proxy
+  namespace: examples-reactive
+  address: 0.0.0.0
+  port: 29095
+  localPort: 29095
+- resourceType: service
+  resourceName: kafka-proxy
+  namespace: examples-reactive
+  address: 0.0.0.0
+  port: 29096
+  localPort: 29096
+- resourceType: service
+  resourceName: kafka-proxy
+  namespace: examples-reactive
+  address: 0.0.0.0
+  port: 29097
+  localPort: 29097
+- resourceType: service
+  resourceName: redpanda-console
+  namespace: examples-reactive
+  address: 0.0.0.0
+  port: 8080
+  localPort: 8080

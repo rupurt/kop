@@ -1,0 +1,1 @@
+Redpanda Console helm chart successfully installed

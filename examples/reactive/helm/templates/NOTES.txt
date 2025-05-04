@@ -1,0 +1,1 @@
+Examples Reactive helm chart successfully installed

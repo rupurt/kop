@@ -16,10 +16,9 @@
 __pycache__/
 *.egg-info/
 
-# Pdm
-/.pdm-python
+# Uv
+/.python-version
 
 # Nix
 /.nix
 /result
-/.dream2nix
